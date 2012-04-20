@@ -138,7 +138,7 @@ Ext.override( Ext.form.field.Checkbox, {
 Ext.override(Ext.data.proxy.Server, {
   constructor: function() {
     this.addEvents('load');
-    this.callOverridden([arguments]);
+    this.callOverridden(arguments);
   },
 
   processResponse: function(success, operation, request, response, callback, scope){
