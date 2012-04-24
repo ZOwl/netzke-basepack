@@ -4,32 +4,31 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{netzke-basepack}
-  s.version = "0.7.3"
+  s.name = "netzke-basepack"
+  s.version = "0.7.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = [%q{Sergei Kozlov}]
-  s.date = %q{2011-10-25}
-  s.description = %q{A set of full-featured extendible Netzke components (such as FormPanel, GridPanel, Window, BorderLayoutPanel, etc) which can be used as building block for your RIA}
-  s.email = %q{sergei@playcode.nl}
+  s.authors = ["Sergei Kozlov"]
+  s.date = "2012-04-22"
+  s.description = "A set of full-featured extendible Netzke components (such as FormPanel, GridPanel, Window, BorderLayoutPanel, etc) which can be used as building block for your RIA"
+  s.email = "sergei@playcode.nl"
   s.extra_rdoc_files = [
     "LICENSE",
     "README.md"
   ]
   s.files = [
     ".autotest",
+    ".travis.yml",
     "CHANGELOG.rdoc",
     "LICENSE",
     "README.md",
     "Rakefile",
     "TODO.rdoc",
-    "app/models/netzke_field_list.rb",
-    "app/models/netzke_model_attr_list.rb",
-    "app/models/netzke_persistent_array_auto_model.rb",
+    "config/ci/before-travis.sh",
     "init.rb",
     "install.rb",
     "javascripts/basepack.js",
-    "javascripts/datetimefield.js",
+    "javascripts/xdatetime.js",
     "lib/generators/netzke/basepack_generator.rb",
     "lib/generators/netzke/templates/assets/ts-checkbox.gif",
     "lib/generators/netzke/templates/create_netzke_field_lists.rb",
@@ -47,6 +46,10 @@ Gem::Specification.new do |s|
     "lib/netzke/basepack/border_layout_panel.rb",
     "lib/netzke/basepack/border_layout_panel/javascripts/border_layout_panel.js",
     "lib/netzke/basepack/data_accessor.rb",
+    "lib/netzke/basepack/data_adapters/abstract_adapter.rb",
+    "lib/netzke/basepack/data_adapters/active_record_adapter.rb",
+    "lib/netzke/basepack/data_adapters/data_mapper_adapter.rb",
+    "lib/netzke/basepack/data_adapters/sequel_adapter.rb",
     "lib/netzke/basepack/form_panel.rb",
     "lib/netzke/basepack/form_panel/fields.rb",
     "lib/netzke/basepack/form_panel/javascripts/comma_list_cbg.js",
@@ -86,6 +89,14 @@ Gem::Specification.new do |s|
     "lib/netzke/basepack/window/javascripts/window.js",
     "lib/netzke/basepack/wrap_lazy_loaded.rb",
     "lib/netzke/basepack/wrapper.rb",
+    "lib/netzke/data_mapper.rb",
+    "lib/netzke/data_mapper/attributes.rb",
+    "lib/netzke/data_mapper/combobox_options.rb",
+    "lib/netzke/data_mapper/relation_extensions.rb",
+    "lib/netzke/sequel.rb",
+    "lib/netzke/sequel/attributes.rb",
+    "lib/netzke/sequel/combobox_options.rb",
+    "lib/netzke/sequel/relation_extensions.rb",
     "lib/tasks/netzke_basepack_tasks.rake",
     "locales/de.yml",
     "locales/en.yml",
@@ -96,6 +107,7 @@ Gem::Specification.new do |s|
     "test/basepack_test_app/.rvmrc",
     "test/basepack_test_app/Gemfile",
     "test/basepack_test_app/Gemfile.lock",
+    "test/basepack_test_app/Guardfile",
     "test/basepack_test_app/README",
     "test/basepack_test_app/Rakefile",
     "test/basepack_test_app/app/components/author_form.rb",
@@ -169,15 +181,18 @@ Gem::Specification.new do |s|
     "test/basepack_test_app/config/boot.rb",
     "test/basepack_test_app/config/cucumber.yml",
     "test/basepack_test_app/config/database.yml.sample",
+    "test/basepack_test_app/config/database.yml.travis",
     "test/basepack_test_app/config/environment.rb",
     "test/basepack_test_app/config/environments/development.rb",
     "test/basepack_test_app/config/environments/production.rb",
     "test/basepack_test_app/config/environments/test.rb",
     "test/basepack_test_app/config/initializers/backtrace_silencers.rb",
+    "test/basepack_test_app/config/initializers/data_mapper_logging.rb",
     "test/basepack_test_app/config/initializers/inflections.rb",
     "test/basepack_test_app/config/initializers/mime_types.rb",
     "test/basepack_test_app/config/initializers/netzke.rb",
     "test/basepack_test_app/config/initializers/secret_token.rb",
+    "test/basepack_test_app/config/initializers/sequel.rb",
     "test/basepack_test_app/config/initializers/session_store.rb",
     "test/basepack_test_app/config/locales/de.yml",
     "test/basepack_test_app/config/locales/es.yml",
@@ -224,6 +239,7 @@ Gem::Specification.new do |s|
     "test/basepack_test_app/features/window.feature",
     "test/basepack_test_app/lib/tasks/.gitkeep",
     "test/basepack_test_app/lib/tasks/cucumber.rake",
+    "test/basepack_test_app/lib/tasks/travis.rake",
     "test/basepack_test_app/public/404.html",
     "test/basepack_test_app/public/422.html",
     "test/basepack_test_app/public/500.html",
@@ -240,10 +256,11 @@ Gem::Specification.new do |s|
     "test/basepack_test_app/public/stylesheets/.gitkeep",
     "test/basepack_test_app/script/cucumber",
     "test/basepack_test_app/script/rails",
-    "test/basepack_test_app/spec/active_record/attributes_spec.rb",
-    "test/basepack_test_app/spec/active_record/relation_extensions_spec.rb",
     "test/basepack_test_app/spec/components/form_panel_spec.rb",
     "test/basepack_test_app/spec/components/grid_panel_spec.rb",
+    "test/basepack_test_app/spec/data_adapter/adapter_spec.rb",
+    "test/basepack_test_app/spec/data_adapter/attributes_spec.rb",
+    "test/basepack_test_app/spec/data_adapter/relation_extensions_spec.rb",
     "test/basepack_test_app/spec/factories.rb",
     "test/basepack_test_app/spec/spec_helper.rb",
     "test/basepack_test_app/test/performance/browsing_test.rb",
@@ -269,42 +286,22 @@ Gem::Specification.new do |s|
     "test/unit/tab_panel_test.rb",
     "uninstall.rb"
   ]
-  s.homepage = %q{http://netzke.org}
-  s.post_install_message = %q{
-========================================================================
-
-           Thanks for installing netzke-basepack!
-
-  Don't forget to run "rails generate netzke:baspack" to copy necessary
-  assets to your public folder!
-
-  Netzke home page:     http://netzke.org
-  Netzke Google Groups: http://groups.google.com/group/netzke
-  Netzke tutorials:     http://blog.writelesscode.com
-
-========================================================================
-
-}
-  s.require_paths = [%q{lib}]
-  s.rubygems_version = %q{1.8.6}
-  s.summary = %q{Pre-built Rails + ExtJS components for your RIA}
+  s.homepage = "http://netzke.org"
+  s.post_install_message = "\n========================================================================\n\n           Thanks for installing netzke-basepack!\n\n  Don't forget to run \"rails generate netzke:baspack\" to copy necessary\n  assets to your public folder!\n\n  Netzke home page:     http://netzke.org\n  Netzke Google Groups: http://groups.google.com/group/netzke\n  Netzke tutorials:     http://blog.writelesscode.com\n\n========================================================================\n\n"
+  s.require_paths = ["lib"]
+  s.rubygems_version = "1.8.10"
+  s.summary = "Pre-built Rails + ExtJS components for your RIA"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<netzke-core>, ["~> 0.7.4"])
-      s.add_runtime_dependency(%q<will_paginate>, ["~> 3.0.0"])
-      s.add_runtime_dependency(%q<acts_as_list>, ["~> 0.1.4"])
     else
       s.add_dependency(%q<netzke-core>, ["~> 0.7.4"])
-      s.add_dependency(%q<will_paginate>, ["~> 3.0.0"])
-      s.add_dependency(%q<acts_as_list>, ["~> 0.1.4"])
     end
   else
     s.add_dependency(%q<netzke-core>, ["~> 0.7.4"])
-    s.add_dependency(%q<will_paginate>, ["~> 3.0.0"])
-    s.add_dependency(%q<acts_as_list>, ["~> 0.1.4"])
   end
 end
 

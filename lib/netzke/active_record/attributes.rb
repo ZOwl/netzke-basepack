@@ -3,14 +3,28 @@ module Netzke
     module Attributes
       extend ActiveSupport::Concern
 
+      included do
+        class_attribute :netzke_declared_attr
+        self.netzke_declared_attr = []
+
+        class_attribute :netzke_excluded_attr
+        self.netzke_excluded_attr = []
+
+        class_attribute :netzke_exposed_attr
+      end
+
       module ClassMethods
+        def data_adapter
+          @data_adapter = Netzke::Basepack::DataAdapters::AbstractAdapter.adapter_class(self).new(self)
+        end
+
         # Define or configure an attribute.
         # Example:
         #   netzke_attribute :recent, :type => :boolean, :read_only => true
         def netzke_attribute(name, options = {})
           name = name.to_s
           options[:attr_type] = options.delete(:type) || options.delete(:attr_type) || :string
-          declared_attrs = read_inheritable_attribute(:netzke_declared_attributes) || []
+          declared_attrs = self.netzke_declared_attr.dup
           # if the attr was declared already, simply merge it with the new options
           existing = declared_attrs.detect{ |va| va[:name] == name }
           if existing
@@ -24,7 +38,7 @@ module Netzke
               declared_attrs << {:name => name}.merge(options)
             end
           end
-          write_inheritable_attribute(:netzke_declared_attributes, declared_attrs)
+          self.netzke_declared_attr = declared_attrs
         end
 
         # Exclude attributes from being picked up by grids and forms.
@@ -32,7 +46,7 @@ module Netzke
         # Example:
         #   netzke_expose_attributes :created_at, :updated_at, :crypted_password
         def netzke_exclude_attributes(*args)
-          write_inheritable_attribute(:netzke_excluded_attributes, args.map(&:to_s))
+          self.netzke_excluded_attr = args.map(&:to_s)
         end
 
         # Explicitly expose attributes that should be picked up by grids and forms.
@@ -41,7 +55,7 @@ module Netzke
         # Example:
         #   netzke_expose_attributes :name, :role__name
         def netzke_expose_attributes(*args)
-          write_inheritable_attribute(:netzke_exposed_attributes, args.map(&:to_s))
+          self.netzke_exposed_attr = args.map(&:to_s)
         end
 
         # Returns the attributes that will be picked up by grids and forms.
@@ -55,7 +69,7 @@ module Netzke
         end
 
         def netzke_exposed_attributes
-          exposed = read_inheritable_attribute(:netzke_exposed_attributes)
+          exposed = self.netzke_exposed_attr
           if exposed && !exposed.include?(self.primary_key)
             # automatically declare primary key as a netzke attribute
             netzke_attribute(self.primary_key)
@@ -65,17 +79,10 @@ module Netzke
         end
 
         private
-          def netzke_declared_attributes
-            read_inheritable_attribute(:netzke_declared_attributes) || []
-          end
-
-          def netzke_excluded_attributes
-            read_inheritable_attribute(:netzke_excluded_attributes) || []
-          end
 
           def netzke_attrs_in_forced_order(attrs)
             attrs.collect do |attr_name|
-              declared = netzke_declared_attributes.detect { |va| va[:name] == attr_name } || {}
+              declared = self.netzke_declared_attr.detect { |va| va[:name] == attr_name } || {}
               in_columns_hash = columns_hash[attr_name] && {:name => attr_name, :attr_type => columns_hash[attr_name].type, :default_value => columns_hash[attr_name].default} || {} # {:virtual => true} # if nothing found in columns, mark it as "virtual" or not?
               if in_columns_hash.empty?
                 # If not among the model columns, it's either virtual, or an association
@@ -98,7 +105,7 @@ module Netzke
           #   role_id => role__name
           def netzke_attrs_in_natural_order
             (
-              declared_attrs = netzke_declared_attributes
+              declared_attrs = self.netzke_declared_attr
 
               column_names.map do |name|
                 c = {:name => name, :attr_type => columns_hash[name].type}
@@ -124,7 +131,7 @@ module Netzke
                 c
               end +
               declared_attrs
-            ).reject { |attr| netzke_excluded_attributes.include?(attr[:name]) }
+            ).reject { |attr| self.netzke_excluded_attr.include?(attr[:name]) }
           end
 
           # Returns foreign key for given association (Rails >= 3.0)
@@ -139,7 +146,7 @@ module Netzke
       end
 
       # Transforms a record to array of values according to the passed attributes
-      def to_array(attributes)
+      def netzke_array(attributes = self.class.netzke_attributes)
         res = []
         for a in attributes
           next if a[:included] == false
@@ -148,8 +155,12 @@ module Netzke
         res
       end
 
+      def netzke_json
+        netzke_hash.to_nifty_json
+      end
+
       # Accepts both hash and array of attributes
-      def to_hash(attributes)
+      def netzke_hash(attributes = self.class.netzke_attributes)
         res = {}
         for a in (attributes.is_a?(Hash) ? attributes.values : attributes)
           next if a[:included] == false
@@ -184,7 +195,7 @@ module Netzke
         end
 
         # a work-around for to_json not taking the current timezone into account when serializing ActiveSupport::TimeWithZone
-        v = v.to_datetime.to_s(:db) if [ActiveSupport::TimeWithZone, Date].include?(v.class)
+        v = v.to_datetime.to_s(:db) if [ActiveSupport::TimeWithZone].include?(v.class)
 
         v
       end

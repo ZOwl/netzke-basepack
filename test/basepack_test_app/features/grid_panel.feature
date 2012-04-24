@@ -4,13 +4,13 @@ Feature: Grid panel
   I want feature
 
 @javascript
-Scenario: UserGrid should correctly display data
+Scenario: BookGrid should correctly display data
   Given an author exists with first_name: "Vladimir", last_name: "Nabokov"
-  And a book exists with author: that author, title: "Lolita", last_read_at: "2011-12-13", published_on: "2005-01-30"
+  And a book exists with author: that author, title: "Lolita", last_read_at: "2011-12-13 11:12:13", published_on: "2005-01-30"
 
   When I go to the BookGrid test page
   Then I should see "Nabokov, Vladimir"
-  And I should see "12/13/2011"
+  And I should see "2011-12-13 11:12:13"
   And I should see "01/30/2005"
 
 @javascript
@@ -212,8 +212,9 @@ Scenario: Advanced search window should be hidable after loading grid panel dyna
 Scenario: Column order should be saved across page reloads
   Given I am on the BookGridWithPersistence test page
   When I drag "Digitized" column before "Title"
+  And I wait for the response from the server
   And I go to the BookGridWithPersistence test page
-  Then I should see columns in order: "Author name", "Digitized", "Title"
+  Then I should see columns in order: "Digitized", "Title", "Exemplars"
 
 @javascript
 Scenario: I must see total records value
@@ -236,16 +237,41 @@ Scenario: GridPanel with overridden columns
   And I should see "Nabokov, Vladimir"
 
 @javascript
+  Scenario: Virtual attributes should not be sortable
+    Given a book exists with title: "Some Title"
+    When I go to the BookGridWithVirtualAttributes test page
+    Then the grid's column "In abundance" should not be sortable
+
+@javascript
   Scenario: Virtual attributes should not be editable
     Given a book exists with title: "Some Title"
     When I go to the BookGridWithVirtualAttributes test page
     Then the grid's column "In abundance" should not be editable
 
 @javascript
-  Scenario: Delete record via an column action
-    Given a book exists with title: "Some Title"
-    When I go to the BookGridWithColumnActions test page
-    And I click the "Delete row" action icon
-    And I press "Yes"
-    Then I should see "Deleted 1 record(s)"
-    And a book should not exist with title: "Some Title"
+Scenario: Delete record via an column action
+  Given a book exists with title: "Some Title"
+  When I go to the BookGridWithColumnActions test page
+  And I click the "Delete row" action icon
+  And I press "Yes"
+  Then I should see "Deleted 1 record(s)"
+  And a book should not exist with title: "Some Title"
+
+@javascript
+Scenario: Pagination in grid panel
+  Given the following books exist:
+  | title               |
+  | Journey to Ixtlan   |
+  | Lolita              |
+  | Getting Things Done |
+  | Magus               |
+  When I go to the BookGridWithPaging test page
+  Then I should see "Journey to Ixtlan"
+  And I should see "Lolita"
+  But I should not see "Getting Things Done"
+  And the grid should show 2 records
+
+  When I go forward one page
+  And  I wait for the response from the server
+  Then I should see "Getting Things Done"
+  And I should see "Magus"
